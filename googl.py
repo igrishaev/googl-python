@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """
 Python client library for the Goo.gl API.
 
@@ -28,8 +28,7 @@ print client.expand(result["id"])
 __version__ = "0.1.1"
 __author__ = "Ivan Grishaev"
 
-import urllib
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 # Searching for JSON library.
 try:
@@ -124,9 +123,9 @@ class Googl(object):
         if self.userip is not None:
             params.update(userip=self.userip)
 
-        full_url = "%s?%s" % (url % self.api, urllib.urlencode(params))
+        full_url = "%s?%s" % (url % self.api, urllib.parse.urlencode(params))
 
-        request = urllib2.Request(full_url, data=data, headers=headers)
+        request = urllib.request.Request(full_url, data=bytes(data, encoding="UTF-8"), headers=headers)
 
         if self.referer is not None:
             request.add_header("Referer", self.referer)
@@ -134,9 +133,9 @@ class Googl(object):
             request.add_header("Authorization", "GoogleLogin auth=%s" % self.client_login)
 
         try:
-            response = urllib2.urlopen(request)
-            return json.loads(response.read())
-        except urllib2.HTTPError, e:
+            response = urllib.request.urlopen(request)
+            return json.loads(str(response.read(), encoding="UTF-8"))
+        except urllib.error.HTTPError as e:
             error = json.loads(e.fp.read())
             raise GooglError(error["error"]["code"], error["error"]["message"])
 
@@ -147,4 +146,3 @@ def get_client_login(email, password):
     service = gdata.service.GDataService()
     service.ClientLogin(email, password, service="urlshortener")
     return service.current_token.get_token_string()
-
